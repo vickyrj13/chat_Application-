@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🤖 Neo AI · ultimate + memory</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at 30% 40%, #0b1c2f, #1b3b5c, #0f2a40);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    #chatContainer {
+      width: 100%;
+      max-width: 750px;
+      height: 94vh;
+      background: rgba(12, 22, 35, 0.6);
+      backdrop-filter: blur(22px) saturate(200%);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 42px;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,180,0.1) inset;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .bot-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(145deg, #f0f, #3b82f6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 20px rgba(0,255,255,0.4);
+    }
+
+    .title-text h2 {
+      font-size: 1.7rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #ffffff, #b9e6ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .title-text p {
+      font-size: 0.75rem;
+      color: #aad0ff;
+      opacity: 0.9;
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .icon-btn {
+      background: rgba(255,255,255,0.08);
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 30px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      transition: 0.2s;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .icon-btn:hover {
+      background: rgba(255, 215, 0, 0.3);
+      transform: scale(1.12);
+      border-color: gold;
+    }
+
+    .voice-on {
+      background: gold;
+      color: black;
+      border-color: white;
+    }
+
+    #messages {
+      flex: 1;
+      padding: 22px 22px 10px 22px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 14px 18px;
+      border-radius: 28px;
+      font-size: 15px;
+      line-height: 1.5;
+      word-break: break-word;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+      animation: pop 0.2s ease;
+      position: relative;
+    }
+
+    @keyframes pop {
+      0% { opacity: 0; transform: translateY(10px) scale(0.95); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .user1 {
+      align-self: flex-start;
+      background: rgba(245, 245, 255, 0.95);
+      color: #0a1a2f;
+      border-bottom-left-radius: 6px;
+      border: 1px solid white;
+    }
+
+    .user2 {
+      align-self: flex-end;
+      background: linear-gradient(145deg, #115f5f, #1b4b7a);
+      color: #f0f9ff;
+      border-bottom-right-radius: 6px;
+      box-shadow: 0 6px 16px #1f8a8a88;
+    }
+
+    .timestamp {
+      font-size: 0.65rem;
+      opacity: 0.6;
+      margin-top: 6px;
+      text-align: right;
+      display: block;
+      font-weight: 300;
+    }
+
+    .typing-indicator {
+      align-self: flex-start;
+      background: rgba(30, 40, 55, 0.9);
+      color: #b3dcff;
+      padding: 12px 22px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-style: italic;
+      backdrop-filter: blur(5px);
+      border: 1px solid cyan;
+      box-shadow: 0 0 15px cyan;
+      display: flex;
+      gap: 8px;
+      animation: glow 1.5s infinite alternate;
+    }
+
+    @keyframes glow {
+      from { border-color: rgba(0,255,255,0.3); box-shadow: 0 0 8px cyan; }
+      to { border-color: cyan; box-shadow: 0 0 22px cyan; }
+    }
+
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 22px 8px 22px;
+      background: rgba(0,0,0,0.2);
+      border-top: 1px dashed rgba(255,255,255,0.15);
+    }
+
+    .suggestions button {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 8px 18px;
+      border-radius: 40px;
+      color: white;
+      font-size: 0.9rem;
+      backdrop-filter: blur(4px);
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .suggestions button:hover {
+      background: #2b6c9e;
+      border-color: white;
+      transform: translateY(-2px);
+    }
+
+    #inputArea {
+      display: flex;
+      gap: 12px;
+      padding: 18px 22px 20px 22px;
+      background: rgba(0, 0, 0, 0.4);
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #messageInput {
+      flex: 1;
+      padding: 16px 24px;
+      border: none;
+      border-radius: 60px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px);
+      color: white;
+      font-size: 16px;
+      outline: 2px solid transparent;
+      transition: 0.2s;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    #messageInput::placeholder {
+      color: rgba(255,255,255,0.5);
+      font-weight: 300;
+    }
+
+    #messageInput:focus {
+      outline: 2px solid #ffb84d;
+      background: rgba(255,255,255,0.15);
+    }
+
+    #charCounter {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.8rem;
+      align-self: center;
+      min-width: 45px;
+    }
+
+    #sendBtn {
+      padding: 0 32px;
+      border: none;
+      border-radius: 60px;
+      background: linear-gradient(45deg, #ffae42, #ff6a4d);
+      color: #111;
+      font-weight: 800;
+      font-size: 1.2rem;
+      cursor: pointer;
+      box-shadow: 0 8px 22px #ff8040cc;
+      transition: 0.2s;
+      letter-spacing: 0.5px;
+    }
+
+    #sendBtn:hover {
+      transform: scale(1.07);
+      background: linear-gradient(45deg, #ffb347, #ff5e3a);
+      box-shadow: 0 8px 30px gold;
+    }
+
+    #messages::-webkit-scrollbar {
+      width: 6px;
+    }
+    #messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #messages::-webkit-scrollbar-thumb {
+      background: #ffae42aa;
+      border-radius: 20px;
+    }
+
+    .warning-msg {
+      color: #ffb347;
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="chatContainer">
+  <div class="chat-header">
+    <div class="bot-title">
+      <span class="avatar">🧠</span>
+      <div class="title-text">
+        <h2>Neo AI · dost</h2>
+        <p>⚡ smart memory • 24/7</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="voiceToggleBtn" title="voice on/off">🔊</button>
+      <button class="icon-btn" id="clearChatBtn" title="clear chat">🗑️</button>
+    </div>
+  </div>
+
+  <div id="messages"></div>
+
+  <div class="suggestions" id="suggestionChips">
+    <button>🙏 kaise ho</button>
+    <button>⏰ time</button>
+    <button>😂 joke</button>
+    <button>🧮 25*4</button>
+    <button>🌤️ weather</button>
+    <button>📖 fact</button>
+    <button>👋 bye</button>
+  </div>
+
+  <div id="inputArea">
+    <input id="messageInput" placeholder="Type in Hindi / English ..." maxlength="200" />
+    <span id="charCounter">0/200</span>
+    <button id="sendBtn">🚀 Send</button>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ----- strict mode safety -----
+    'use strict';
+
+    // ----- DOM elements -----
+    const messagesDiv = document.getElementById('messages');
+    const input = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const voiceToggle = document.getElementById('voiceToggleBtn');
+    const clearBtn = document.getElementById('clearChatBtn');
+    const suggestionChips = document.getElementById('suggestionChips');
+    const charCounter = document.getElementById('charCounter');
+
+    // ----- state & memory (localStorage) -----
+    let userName = localStorage.getItem('neoUserName') || null;          // stored name
+    let voiceEnabled = localStorage.getItem('neoVoice') !== 'false';    // default true
+    let chatHistory = [];                                                // for local storage sync
+
+    // speech synthesis support
+    const speechSupported = 'speechSynthesis' in window;
+
+    // update voice toggle UI
+    function updateVoiceUI() {
+      voiceToggle.innerText = voiceEnabled ? '🔊' : '🔇';
+      voiceToggle.classList.toggle('voice-on', voiceEnabled);
+      if (!speechSupported && voiceEnabled) {
+        addSystemMessage('⚠️ Voice not supported in this browser', 2500);
+      }
+    }
+
+    // Load previous messages from localStorage
+    function loadChatHistory() {
+      const saved = localStorage.getItem('neoChatMessages');
+      if (saved) {
+        try {
+          const msgs = JSON.parse(saved);
+          msgs.forEach(msg => {
+            addMessage(msg.user, msg.text, true, msg.timestamp); // skip TTS, skip save
+          });
+        } catch (e) { console.warn('corrupt history'); }
+      }
+      // if no messages, add greeting
+      if (messagesDiv.children.length === 0) {
+        setTimeout(() => {
+          botSay('Namaste! Main Neo AI hu. Aapka naam kya hai? 🤖', true);
+        }, 300);
+      } else {
+        // scroll to bottom after load
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+    }
+
+    // Save a message to localStorage
+    function saveMessageToHistory(user, text, timestamp) {
+      const saved = localStorage.getItem('neoChatMessages');
+      let msgs = saved ? JSON.parse(saved) : [];
+      msgs.push({ user, text, timestamp: timestamp || new Date().toISOString() });
+      // keep only last 100 messages to avoid storage overflow
+      if (msgs.length > 100) msgs = msgs.slice(-100);
+      localStorage.setItem('neoChatMessages', JSON.stringify(msgs));
+    }
+
+    // Clear chat (with confirmation)
+    function clearChat() {
+      if (confirm('Saari baatein delete ho jayengi. Pakka?')) {
+        messagesDiv.innerHTML = '';
+        localStorage.removeItem('neoChatMessages');
+        // name bhi reset karna ho to? optional — but we keep name.
+        // userName = null; localStorage.removeItem('neoUserName');
+        botSay('Chat clear! Phir se shuru karte hain. Apna naam?', true);
+      }
+    }
+
+    // ----- helper: add message bubble (and optionally save) -----
+    function addMessage(user, text, skipTTS = false, customTimestamp = null) {
+      if (!text.trim()) return;
+
+      const div = document.createElement('div');
+      div.className = `message ${user}`;
+      const p = document.createElement('span');
+      p.innerText = text;
+      div.appendChild(p);
+
+      const timeSpan = document.createElement('div');
+      timeSpan.className = 'timestamp';
+      const ts = customTimestamp ? new Date(customTimestamp) : new Date();
+      timeSpan.innerText = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      div.appendChild(timeSpan);
+
+      messagesDiv.appendChild(div);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+      // Save to localStorage (only if it's a new message without timestamp)
+      if (!customTimestamp) {
+        saveMessageToHistory(user, text, ts.toISOString());
+      }
+
+      // Speak if bot message, voice on, and not skipped
+      if (user === 'user2' && voiceEnabled && !skipTTS && speechSupported) {
+        const cleanText = text.replace(/^Bot:\s*/i, '').replace(/🤖/g, '').trim();
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'hi-IN';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.1;
+        // try to get Hindi voice
+        let voices = speechSynthesis.getVoices();
+        let hindiVoice = voices.find(v => v.lang.includes('hi'));
+        if (hindiVoice) utterance.voice = hindiVoice;
+        speechSynthesis.speak(utterance);
+      } else if (user === 'user2' && voiceEnabled && !speechSupported) {
+        addSystemMessage('🔇 Browser speech not available', 2000);
+      }
+    }
+
+    function addSystemMessage(text, timeout = 2000) {
+      const sys = document.createElement('div');
+      sys.style.textAlign = 'center';
+      sys.style.fontSize = '0.75rem';
+      sys.style.color = '#ffd966';
+      sys.style.padding = '6px';
+      sys.innerText = text;
+      messagesDiv.appendChild(sys);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      if (timeout) setTimeout(() => sys.remove(), timeout);
+    }
+
+    // typing
+    function showTyping() {
+      if (document.getElementById('typingIndicator')) return;
+      const typingDiv = document.createElement('div');
+      typingDiv.id = 'typingIndicator';
+      typingDiv.className = 'typing-indicator';
+      typingDiv.innerText = '🤖 soch raha hai...';
+      messagesDiv.appendChild(typingDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function hideTyping() {
+      const typing = document.getElementById('typingIndicator');
+      if (typing) typing.remove();
+    }
+
+    function botSay(reply, skipTts = false) {
+      showTyping();
+      setTimeout(() => {
+        hideTyping();
+        addMessage('user2', '🤖 ' + reply, skipTts);
+      }, 800 + Math.random() * 600);
+    }
+
+    // ----- safe math evaluator (using Function) -----
+    function safeMath(expr) {
+      // only allow numbers, operators, parentheses, spaces, dots
+      if (!/^[0-9+\-*/().\s]+$/.test(expr)) return null;
+      try {
+        // Using Function instead of eval is safer
+        const fn = new Function('return ' + expr);
+        const result = fn();
+        if (typeof result === 'number' && isFinite(result)) return result;
+        else return null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // ----- name extraction from user message -----
+    function extractName(msg) {
+      // patterns: "mera naam X", "my name is X", "i am X", "main X hoon", "X bol sakte ho"
+      const patterns = [
+        /(?:mera naam|my name is|i am|i'm|main|mujhe|name)\s+([a-zA-Z]{2,})/i,
+        /(?:aap|tu) (?:mera naam|name) ([a-zA-Z]{2,})/i,
+        /([a-zA-Z]{2,})\s+(?:hain?|hai|bol|kehte)/i
+      ];
+      for (let pat of patterns) {
+        const match = msg.match(pat);
+        if (match && match[1]) {
+          let possible = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+          // avoid common false positives
+          if (!['Hai', 'Hoon', 'Kaise', 'Kya', 'Aap', 'Tum', 'Main'].includes(possible)) {
+            return possible;
+          }
+        }
+      }
+      return null;
+    }
+
+    // ----- enhanced brain with facts and better fallback -----
+    function generateReply(userMsg) {
+      let msg = userMsg.toLowerCase().trim().replace(/\s+/g, ' ');
+
+      // --- name detection & storage ---
+      const newName = extractName(userMsg);
+      if (newName && !userMsg.includes('kaise ho')) { // avoid capturing "kaise ho" as name
+        userName = newName;
+        localStorage.setItem('neoUserName', userName);
+        return `Accha! To aap ${userName} hain. Kya help chahiye? 😊`;
+      }
+
+      const nameGreet = userName ? ` ${userName}` : '';
+
+      // --- greeting ---
+      if (msg.match(/\b(hi|hello|hey|namaste|namaskar|hii|heyy|namastey)\b/)) {
+        const greets = [
+          `Namaste${nameGreet}! Kaise ho aap?`,
+          `Hello${nameGreet}! Kya haal chaal?`,
+          `Hey${nameGreet}! Kya chal raha hai?`,
+          `Namaste ji! Aap ka din shubh ho ✨`
+        ];
+        return greets[Math.floor(Math.random() * greets.length)];
+      }
+
+      // --- how are you ---
+      if (msg.includes('kaise ho') || msg.includes('how are you') || msg.includes('kya haal')) {
+        return `Main bilkul mast${nameGreet}! Aap apna batao 😄`;
+      }
+
+      // --- time / date ---
+      if (msg.includes('time')) return `Abhi time hai: ${new Date().toLocaleTimeString()}`;
+      if (msg.includes('date')) return `Aaj ${new Date().toLocaleDateString('hi-IN')}`;
+
+      // --- weather (mock) ---
+      if (msg.includes('weather') || msg.includes('mausam')) {
+        const cond = ['dhoop', 'badal', 'baarish', 'thandak', 'garam', 'haveli'];
+        const city = ['Mumbai', 'Delhi', 'Pune', 'Lucknow', 'Chennai', 'Kolkata'];
+        const randC = city[Math.floor(Math.random() * city.length)];
+        const randW = cond[Math.floor(Math.random() * cond.length)];
+        const temp = Math.floor(18 + Math.random() * 15);
+        return `${randC} me ${randW} hai, temperature ~${temp}°C 🌤️`;
+      }
+
+      // --- jokes (extra funny) ---
+      if (msg.includes('joke') || msg.includes('hans') || msg.includes('hasna')) {
+        const jokes = [
+          "Coder ne girlfriend se kaha: 'Tum to permanent bug ho' 😂",
+          "WiFi ka password pucha? Auto wala: 'Maine apni biwi se pucha' 😜",
+          "Dimaag ho to kya nahi kar sakte? ... Par dimag hai kya?",
+          "Bill Gates auto me: 'Microsoft office chaloge?'",
+          "Main aur mera dost: 'Tu Google hai?' 'Nahi, main Wikipedia hoon, kyunki mujhe sab aata hai.' 🤣"
+        ];
+        return jokes[Math.floor(Math.random() * jokes.length)];
+      }
+
+      // --- facts (new) ---
+      if (msg.includes('fact') || msg.includes('tathy') || msg.includes('kya pata')) {
+        const facts = [
+          "🧠 Insaan ka dimaag 20 watt ka bulb jitni energy use karta hai!",
+          "🐘 Hathi eklaute 60 litre paani pi sakta hai.",
+          "🌍 Internet ka 50% traffic bots se aata hai.",
+          "🍌 Kela technically berry hai, strawberry nahi.",
+          "🐍 Python language ka naam Monty Python se aaya.",
+          "🇮🇳 India me sabse zyada movies banne wala sheher Mumbai hai."
+        ];
+        return facts[Math.floor(Math.random() * facts.length)];
+      }
+
+      // --- math evaluation (safe) ---
+      if (/[+\-*/]/.test(msg) && /^[0-9+\-*/().\s]+$/.test(msg)) {
+        const res = safeMath(msg);
+        if (res !== null) return `Jawab: ${res} 😎`;
+      }
+
+      // --- who made you? ---
+      if (msg.includes('who made you') || msg.includes('banaya') || msg.includes('creator')) {
+        return 'Mujhe Vikram ne banaya hai (smart developer) 🧑‍💻';
+      }
+
+      // --- bye ---
+      if (msg.includes('bye') || msg.includes('alvida') || msg.includes('phir milenge')) {
+        return `Bye bye${nameGreet}! Khush raho 👋`;
+      }
+
+      // --- thanks ---
+      if (msg.includes('thanks') || msg.includes('shukriya')) {
+        return 'Shukriya! 😊 Kuch aur?';
+      }
+
+      // --- about bot ---
+      if (msg.includes('kaun ho') || msg.includes('who are you')) {
+        return "Main Neo AI hoon, aapka dost! Kuch bhi puch lo 🤖";
+      }
+
+      // --- fallback with variety ---
+      const fallbacks = [
+        "Hmm, samajh gaya. Aage batao?",
+        "Interesting! Phir?",
+        "Achha? Mujhe aur details do.",
+        "Main sun raha hu...",
+        "Sahi pakde hain 👍",
+        "Uske baad kya hua?",
+        "Maza aa gaya sunke 😄",
+        "Thoda aur batao na..."
+      ];
+      return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    }
+
+    // ----- send message -----
+    function sendMessage() {
+      let text = input.value.trim();
+      if (text.length === 0) return;
+      if (text.length > 200) {
+        addSystemMessage('⚠️ Max 200 characters', 1500);
+        return;
+      }
+
+      addMessage('user1', text);
+      input.value = '';
+      charCounter.innerText = '0/200';
+
+      const reply = generateReply(text);
+      botSay(reply);
+    }
+
+    // ----- event listeners -----
+    sendBtn.addEventListener('click', sendMessage);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    // character counter
+    input.addEventListener('input', function() {
+      const len = this.value.length;
+      charCounter.innerText = len + '/200';
+      if (len >= 200) charCounter.style.color = '#ffaa66';
+      else charCounter.style.color = 'rgba(255,255,255,0.5)';
+    });
+
+    // voice toggle
+    voiceToggle.addEventListener('click', () => {
+      voiceEnabled = !voiceEnabled;
+      localStorage.setItem('neoVoice', voiceEnabled);
+      updateVoiceUI();
+      addSystemMessage(voiceEnabled ? '🔊 Voice on' : '🔇 Voice off', 1200);
+    });
+
+    // clear chat button
+    clearBtn.addEventListener('click', clearChat);
+
+    // suggestion chips
+    suggestionChips.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') {
+        let chip = e.target.innerText;
+        chip = chip.replace(/[🙏⏰😂🧮🌤️📖👋]/g, '').trim();
+        const map = {
+          'kaise ho': 'kaise ho',
+          'time': 'time',
+          'joke': 'ek joke sunao',
+          '25*4': '25*4',
+          'weather': 'mausam kaisa hai',
+          'fact': 'koi fact batao',
+          'bye': 'bye'
+        };
+        input.value = map[chip] || chip;
+        sendMessage();
+      }
+    });
+
+    // load chat history from localStorage
+    loadChatHistory();
+
+    // initialise voice UI
+    updateVoiceUI();
+
+    // If name exists in localStorage, set it
+    const storedName = localStorage.getItem('neoUserName');
+    if (storedName) userName = storedName;
+
+    // pre-populate voices (for chrome)
+    if (speechSupported) {
+      speechSynthesis.getVoices(); // just trigger
+    }
+
+    // auto-focus input
+    input.focus();
+  })();
+</script>
+</body>
+</html>
